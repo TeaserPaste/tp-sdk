@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    name: Ruff Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+          enable-cache: false # Sếp bảo SDK ít lib, khỏi cache cho nhẹ đầu
+
+      - name: Lint code
+        # Soi lỗi logic (unused imports, syntax error, etc.)
+        run: uv run ruff check .
+
+      - name: Check format
+        # Soi style (có đúng chuẩn PEP8/Black không?)
+        # --check để nó chỉ báo lỗi
+        run: uv run ruff format --check .
