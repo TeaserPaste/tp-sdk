@@ -20,11 +20,12 @@ jobs:
           version: "latest"
           enable-cache: false # Sếp bảo SDK ít lib, khỏi cache cho nhẹ đầu
 
+      - name: Install Ruff
+        # Cài ruff như một tool độc lập
+        run: uv tool install ruff@latest
+
       - name: Lint code
-        # Soi lỗi logic (unused imports, syntax error, etc.)
-        run: uv run ruff check .
+        run: ruff check .
 
       - name: Check format
-        # Soi style (có đúng chuẩn PEP8/Black không?)
-        # --check để nó chỉ báo lỗi
-        run: uv run ruff format --check .
+        run: ruff format --check .
