@@ -9,8 +9,8 @@ jobs:
   build-and-publish:
     name: Build and Publish
     runs-on: ubuntu-latest
+    environment: pypi
     
-    # Permission cần thiết cho Trusted Publishing (OIDC)
     permissions:
       id-token: write
       contents: read
@@ -29,7 +29,6 @@ jobs:
         run: uv build
 
       - name: Publish to PyPI
-        # Action chính chủ PyPA, tự động dùng OIDC, không cần token
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           verbose: true
