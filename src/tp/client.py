@@ -1,11 +1,11 @@
 import logging
 import os
-from typing import Any, Dict, List, Optional, Iterator, AsyncIterator
+from typing import Any, AsyncIterator, Dict, Iterator, List, Optional
 
 import httpx
 
 from .errors import AuthError, NotFoundError, ServerError, TPError
-from .models import SearchResult, Snippet, SnippetInput, UserInfo, Visibility, Expiry
+from .models import SearchResult, Snippet, SnippetInput, UserInfo, Visibility
 
 logger = logging.getLogger("tp-sdk")
 
@@ -17,15 +17,17 @@ class TeaserPaste:
 
     DEFAULT_BASE_URL = "https://paste-api.teaserverse.online"
 
-    def __init__(self, api_key: str, timeout: int = 10, base_url: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, timeout: int = 10, base_url: Optional[str] = None):
         self.api_key = api_key
         self.timeout = timeout
         self.base_url = base_url or os.getenv("TP_BASE_URL") or self.DEFAULT_BASE_URL
         self.headers = {
-            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
             "User-Agent": "TeaserPaste-SDK/0.1.0 (Python)"
         }
+        if self.api_key:
+            self.headers["Authorization"] = f"Bearer {self.api_key}"
+
         self.client = httpx.Client(
             base_url=self.base_url,
             headers=self.headers,
@@ -73,13 +75,13 @@ class TeaserPaste:
         """Create (Paste) a new snippet."""
         return Snippet(**self._req("POST", "/createSnippet", json=data.model_dump(by_alias=True)))
 
-    def edit(self, id: str, 
-             title: Optional[str] = None, 
-             content: Optional[str] = None, 
-             language: Optional[str] = None, 
-             visibility: Optional[Visibility] = None, 
-             tags: Optional[List[str]] = None, 
-             password: Optional[str] = None, 
+    def edit(self, id: str,
+             title: Optional[str] = None,
+             content: Optional[str] = None,
+             language: Optional[str] = None,
+             visibility: Optional[Visibility] = None,
+             tags: Optional[List[str]] = None,
+             password: Optional[str] = None,
              expires: Optional[str] = None,
              **kwargs) -> Snippet:
         """Update a snippet. Pass fields as arguments."""
@@ -158,15 +160,17 @@ class AsyncTeaserPaste:
 
     DEFAULT_BASE_URL = "https://paste-api.teaserverse.online"
 
-    def __init__(self, api_key: str, timeout: int = 10, base_url: Optional[str] = None):
+    def __init__(self, api_key: Optional[str] = None, timeout: int = 10, base_url: Optional[str] = None):
         self.api_key = api_key
         self.timeout = timeout
         self.base_url = base_url or os.getenv("TP_BASE_URL") or self.DEFAULT_BASE_URL
         self.headers = {
-            "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json",
             "User-Agent": "TeaserPaste-SDK/0.1.0 (Python)"
         }
+        if self.api_key:
+            self.headers["Authorization"] = f"Bearer {self.api_key}"
+
         self.client = httpx.AsyncClient(
             base_url=self.base_url,
             headers=self.headers,
@@ -210,13 +214,13 @@ class AsyncTeaserPaste:
         """Create (Paste) a new snippet."""
         return Snippet(**await self._req("POST", "/createSnippet", json=data.model_dump(by_alias=True)))
 
-    async def edit(self, id: str, 
-             title: Optional[str] = None, 
-             content: Optional[str] = None, 
-             language: Optional[str] = None, 
-             visibility: Optional[Visibility] = None, 
-             tags: Optional[List[str]] = None, 
-             password: Optional[str] = None, 
+    async def edit(self, id: str,
+             title: Optional[str] = None,
+             content: Optional[str] = None,
+             language: Optional[str] = None,
+             visibility: Optional[Visibility] = None,
+             tags: Optional[List[str]] = None,
+             password: Optional[str] = None,
              expires: Optional[str] = None,
              **kwargs) -> Snippet:
         """Update a snippet. Pass fields as arguments."""
@@ -247,7 +251,7 @@ class AsyncTeaserPaste:
         payload = {"limit": limit, "skip": skip}
         if mode: payload["visibility"] = mode
         return [Snippet(**i) for i in await self._req("POST", "/listSnippets", json=payload)]
-    
+
     async def ls_iter(self, limit: int = 20, mode: Optional[Visibility] = None) -> AsyncIterator[Snippet]:
         """Async iterator for listing snippets (lazy loading)."""
         offset = 0

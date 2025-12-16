@@ -10,12 +10,13 @@ Usage:
     >>> api.paste(tp.SnippetInput(title="Hi", content="Yo"))
 """
 
-from .client import TeaserPaste
+from .client import AsyncTeaserPaste, TeaserPaste
 from .errors import AuthError, NotFoundError, TPError
 from .models import SearchResult, Snippet, SnippetInput, UserInfo, Visibility
 
 __all__ = [
     "TeaserPaste",
+    "AsyncTeaserPaste",
     "Snippet",
     "SnippetInput",
     "Visibility",
