@@ -1,10 +1,17 @@
 from datetime import datetime
-from typing import List, Literal, Optional
+from enum import Enum
+from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
 # Visibility Enum
 Visibility = Literal['public', 'unlisted', 'private', 'deleted']
+
+class Expiry(str, Enum):
+    MIN_10 = "10m"
+    HOUR_1 = "1h"
+    DAY_1 = "1d"
+    WEEK_1 = "1w"
 
 class TPBaseModel(BaseModel):
     """Base model that configures camelCase (API) <-> snake_case (Python) mapping."""
@@ -43,6 +50,9 @@ class Snippet(TPBaseModel):
     password_bypassed: bool = Field(alias="passwordBypassed", default=False)
     requires_password: bool = Field(alias="requiresPassword", default=False)
 
+    def __repr__(self):
+        return f"<Snippet id={self.id} title='{self.title}' visibility={self.visibility}>"
+
 class SnippetInput(TPBaseModel):
     """Used for creating or updating a snippet."""
     title: str
@@ -52,7 +62,7 @@ class SnippetInput(TPBaseModel):
     tags: List[str] = Field(default_factory=list)
     password: str = ""
     # Format expires: "10m", "1h", "1d", "1w" or None
-    expires: Optional[str] = None
+    expires: Optional[Union[Expiry, str]] = None
 
 class SearchResult(TPBaseModel):
     hits: List[Snippet]
