@@ -107,46 +107,33 @@ class TeaserPaste:
         """Copy (Fork) a snippet to your account."""
         return self._req("POST", "/copySnippet", json={"snippetId": id})
 
-    def ls(self, limit: int = 20, mode: Optional[Visibility] = None, skip: int = 0) -> List[Snippet]:
+    def ls(self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False) -> List[Snippet]:
         """List MY snippets (ls)."""
-        payload = {"limit": limit, "skip": skip}
+        payload = {"limit": limit}
         if mode: payload["visibility"] = mode
+        if include_deleted: payload["includeDeleted"] = True
         return [Snippet(**i) for i in self._req("POST", "/listSnippets", json=payload)]
 
-    def ls_iter(self, limit: int = 20, mode: Optional[Visibility] = None) -> Iterator[Snippet]:
-        """Iterator for listing snippets (lazy loading)."""
-        offset = 0
-        while True:
-            snippets = self.ls(limit=limit, mode=mode, skip=offset)
-            if not snippets:
-                break
-            for snippet in snippets:
-                yield snippet
-            offset += len(snippets)
-            if len(snippets) < limit:
-                break
+    def ls_iter(self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False) -> Iterator[Snippet]:
+        """Iterator for listing snippets (single page only, pagination deprecated)."""
+        snippets = self.ls(limit=limit, mode=mode, include_deleted=include_deleted)
+        for snippet in snippets:
+            yield snippet
 
     def user(self, uid: str) -> List[Snippet]:
         """Get PUBLIC snippets of another USER."""
         return [Snippet(**i) for i in self._req("POST", "/getUserPublicSnippets", json={"userId": uid})]
 
-    def find(self, q: str, size: int = 20, skip: int = 0) -> SearchResult:
+    def find(self, q: str, size: int = 20) -> SearchResult:
         """Search (Find) snippets."""
-        data = self._req("POST", "/searchSnippets", json={"term": q, "size": size, "from": skip})
+        data = self._req("POST", "/searchSnippets", json={"term": q, "size": size})
         return SearchResult(hits=[Snippet(**h) for h in data.get("hits", [])], total=data.get("total", 0))
 
     def find_iter(self, q: str, size: int = 20) -> Iterator[Snippet]:
-        """Iterator for finding snippets."""
-        offset = 0
-        while True:
-            result = self.find(q=q, size=size, skip=offset)
-            if not result.hits:
-                break
-            for snippet in result.hits:
-                yield snippet
-            offset += len(result.hits)
-            if offset >= result.total:
-                break
+        """Iterator for finding snippets (single page only, pagination deprecated)."""
+        result = self.find(q=q, size=size)
+        for snippet in result.hits:
+            yield snippet
 
     def me(self) -> UserInfo:
         """Get MY info."""
@@ -246,46 +233,33 @@ class AsyncTeaserPaste:
         """Copy (Fork) a snippet to your account."""
         return await self._req("POST", "/copySnippet", json={"snippetId": id})
 
-    async def ls(self, limit: int = 20, mode: Optional[Visibility] = None, skip: int = 0) -> List[Snippet]:
+    async def ls(self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False) -> List[Snippet]:
         """List MY snippets (ls)."""
-        payload = {"limit": limit, "skip": skip}
+        payload = {"limit": limit}
         if mode: payload["visibility"] = mode
+        if include_deleted: payload["includeDeleted"] = True
         return [Snippet(**i) for i in await self._req("POST", "/listSnippets", json=payload)]
 
-    async def ls_iter(self, limit: int = 20, mode: Optional[Visibility] = None) -> AsyncIterator[Snippet]:
-        """Async iterator for listing snippets (lazy loading)."""
-        offset = 0
-        while True:
-            snippets = await self.ls(limit=limit, mode=mode, skip=offset)
-            if not snippets:
-                break
-            for snippet in snippets:
-                yield snippet
-            offset += len(snippets)
-            if len(snippets) < limit:
-                break
+    async def ls_iter(self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False) -> AsyncIterator[Snippet]:
+        """Async iterator for listing snippets (single page only, pagination deprecated)."""
+        snippets = await self.ls(limit=limit, mode=mode, include_deleted=include_deleted)
+        for snippet in snippets:
+            yield snippet
 
     async def user(self, uid: str) -> List[Snippet]:
         """Get PUBLIC snippets of another USER."""
         return [Snippet(**i) for i in await self._req("POST", "/getUserPublicSnippets", json={"userId": uid})]
 
-    async def find(self, q: str, size: int = 20, skip: int = 0) -> SearchResult:
+    async def find(self, q: str, size: int = 20) -> SearchResult:
         """Search (Find) snippets."""
-        data = await self._req("POST", "/searchSnippets", json={"term": q, "size": size, "from": skip})
+        data = await self._req("POST", "/searchSnippets", json={"term": q, "size": size})
         return SearchResult(hits=[Snippet(**h) for h in data.get("hits", [])], total=data.get("total", 0))
 
     async def find_iter(self, q: str, size: int = 20) -> AsyncIterator[Snippet]:
-        """Async iterator for finding snippets."""
-        offset = 0
-        while True:
-            result = await self.find(q=q, size=size, skip=offset)
-            if not result.hits:
-                break
-            for snippet in result.hits:
-                yield snippet
-            offset += len(result.hits)
-            if offset >= result.total:
-                break
+        """Async iterator for finding snippets (single page only, pagination deprecated)."""
+        result = await self.find(q=q, size=size)
+        for snippet in result.hits:
+            yield snippet
 
     async def me(self) -> UserInfo:
         """Get MY info."""

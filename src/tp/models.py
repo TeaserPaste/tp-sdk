@@ -9,9 +9,11 @@ Visibility = Literal['public', 'unlisted', 'private', 'deleted']
 
 class Expiry(str, Enum):
     MIN_10 = "10m"
+    MIN_30 = "30m"
     HOUR_1 = "1h"
     DAY_1 = "1d"
     WEEK_1 = "1w"
+    WEEK_2 = "2w"
 
 class TPBaseModel(BaseModel):
     """Base model that configures camelCase (API) <-> snake_case (Python) mapping."""
