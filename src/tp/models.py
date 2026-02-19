@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Literal, Optional, Union
+from typing import Literal, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -35,7 +35,7 @@ class Snippet(TPBaseModel):
     content: str
     language: str = "plaintext"
     visibility: Visibility
-    tags: List[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
 
     # Metadata
     creator_id: str = Field(alias="creatorId")
@@ -68,14 +68,14 @@ class SnippetInput(TPBaseModel):
     content: str
     language: str = "plaintext"
     visibility: Visibility = "unlisted"
-    tags: List[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
     password: str = ""
     # Format expires: "10m", "1h", "1d", "1w" or None
     expires: Optional[Union[Expiry, str]] = None
 
 
 class SearchResult(TPBaseModel):
-    hits: List[Snippet]
+    hits: list[Snippet]
     total: int
     took: Optional[int] = None
 

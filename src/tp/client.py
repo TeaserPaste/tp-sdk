@@ -1,6 +1,7 @@
 import logging
 import os
-from typing import Any, AsyncIterator, Dict, Iterator, List, Optional
+from collections.abc import AsyncIterator, Iterator
+from typing import Any, Optional
 
 import httpx
 
@@ -44,7 +45,7 @@ class TeaserPaste:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def _req(self, method: str, path: str, json: Optional[Dict] = None) -> Any:
+    def _req(self, method: str, path: str, json: Optional[dict] = None) -> Any:
         # url = f"{self.BASE_URL}{path}" # handled by base_url in client
         logger.debug(f"{method} {path}")
 
@@ -62,7 +63,7 @@ class TeaserPaste:
             resp.raise_for_status()
             return resp.json()
         except httpx.RequestError as e:
-            raise TPError(f"Network bad: {e}")
+            raise TPError(f"Network bad: {e}") from e
 
     # --- The "One Word" Public API ---
 
@@ -84,7 +85,7 @@ class TeaserPaste:
         content: Optional[str] = None,
         language: Optional[str] = None,
         visibility: Optional[Visibility] = None,
-        tags: Optional[List[str]] = None,
+        tags: Optional[list[str]] = None,
         password: Optional[str] = None,
         expires: Optional[str] = None,
         **kwargs,
@@ -108,17 +109,17 @@ class TeaserPaste:
         self._req("POST", "/restoreSnippet", json={"snippetId": id})
         return True
 
-    def star(self, id: str, on: bool = True) -> Dict[str, Any]:
+    def star(self, id: str, on: bool = True) -> dict[str, Any]:
         """Star (on=True) or Unstar (on=False)."""
         return self._req("POST", "/starSnippet", json={"snippetId": id, "star": on})
 
-    def fork(self, id: str) -> Dict[str, str]:
+    def fork(self, id: str) -> dict[str, str]:
         """Copy (Fork) a snippet to your account."""
         return self._req("POST", "/copySnippet", json={"snippetId": id})
 
     def ls(
         self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False
-    ) -> List[Snippet]:
+    ) -> list[Snippet]:
         """List MY snippets (ls)."""
         payload = {"limit": limit}
         if mode:
@@ -132,10 +133,9 @@ class TeaserPaste:
     ) -> Iterator[Snippet]:
         """Iterator for listing snippets (single page only, pagination deprecated)."""
         snippets = self.ls(limit=limit, mode=mode, include_deleted=include_deleted)
-        for snippet in snippets:
-            yield snippet
+        yield from snippets
 
-    def user(self, uid: str) -> List[Snippet]:
+    def user(self, uid: str) -> list[Snippet]:
         """Get PUBLIC snippets of another USER."""
         return [
             Snippet(**i) for i in self._req("POST", "/getUserPublicSnippets", json={"userId": uid})
@@ -151,8 +151,7 @@ class TeaserPaste:
     def find_iter(self, q: str, size: int = 20) -> Iterator[Snippet]:
         """Iterator for finding snippets (single page only, pagination deprecated)."""
         result = self.find(q=q, size=size)
-        for snippet in result.hits:
-            yield snippet
+        yield from result.hits
 
     def me(self) -> UserInfo:
         """Get MY info."""
@@ -192,7 +191,7 @@ class AsyncTeaserPaste:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.close()
 
-    async def _req(self, method: str, path: str, json: Optional[Dict] = None) -> Any:
+    async def _req(self, method: str, path: str, json: Optional[dict] = None) -> Any:
         logger.debug(f"{method} {path}")
 
         try:
@@ -208,7 +207,7 @@ class AsyncTeaserPaste:
             resp.raise_for_status()
             return resp.json()
         except httpx.RequestError as e:
-            raise TPError(f"Network bad: {e}")
+            raise TPError(f"Network bad: {e}") from e
 
     async def get(self, id: str, pwd: Optional[str] = None) -> Snippet:
         """Get a snippet."""
@@ -230,7 +229,7 @@ class AsyncTeaserPaste:
         content: Optional[str] = None,
         language: Optional[str] = None,
         visibility: Optional[Visibility] = None,
-        tags: Optional[List[str]] = None,
+        tags: Optional[list[str]] = None,
         password: Optional[str] = None,
         expires: Optional[str] = None,
         **kwargs,
@@ -254,17 +253,17 @@ class AsyncTeaserPaste:
         await self._req("POST", "/restoreSnippet", json={"snippetId": id})
         return True
 
-    async def star(self, id: str, on: bool = True) -> Dict[str, Any]:
+    async def star(self, id: str, on: bool = True) -> dict[str, Any]:
         """Star (on=True) or Unstar (on=False)."""
         return await self._req("POST", "/starSnippet", json={"snippetId": id, "star": on})
 
-    async def fork(self, id: str) -> Dict[str, str]:
+    async def fork(self, id: str) -> dict[str, str]:
         """Copy (Fork) a snippet to your account."""
         return await self._req("POST", "/copySnippet", json={"snippetId": id})
 
     async def ls(
         self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False
-    ) -> List[Snippet]:
+    ) -> list[Snippet]:
         """List MY snippets (ls)."""
         payload = {"limit": limit}
         if mode:
@@ -281,7 +280,7 @@ class AsyncTeaserPaste:
         for snippet in snippets:
             yield snippet
 
-    async def user(self, uid: str) -> List[Snippet]:
+    async def user(self, uid: str) -> list[Snippet]:
         """Get PUBLIC snippets of another USER."""
         return [
             Snippet(**i)
