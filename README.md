@@ -65,12 +65,12 @@ api.paste(tp.SnippetInput(..., expires=Expiry.WEEK_1))
 api.edit(snippet_id, title="New Title", visibility="private")
 ```
 
-### Pagination Helpers
-Iterate through all your snippets without handling offsets manually.
+### Iteration Helpers
+Iterate through your snippets (single page only).
 
 ```python
-# Lazy load all snippets
-for snippet in api.ls_iter():
+# Iterate snippets
+for snippet in api.ls_iter(include_deleted=True):
     print(snippet.title)
 ```
 
@@ -85,11 +85,11 @@ for snippet in api.ls_iter():
 * `api.live(id)` — Restore a deleted snippet.
 * `api.fork(id)` — Copy a snippet to your account.
 * `api.star(id, on=True)` — Star (or unstar) a snippet.
-* `api.ls(limit=20, skip=0)` — List your snippets.
-* `api.ls_iter(limit=20)` — Iterator for listing snippets.
+* `api.ls(limit=20, include_deleted=False)` — List your snippets.
+* `api.ls_iter(limit=20, include_deleted=False)` — Iterator for listing snippets (single page).
 * `api.user(uid)` — List another user's public snippets.
 * `api.find(q)` — Search snippets.
-* `api.find_iter(q)` — Iterator for searching snippets.
+* `api.find_iter(q)` — Iterator for searching snippets (single page).
 * `api.me()` — Get your account info.
 
 ## Configuration
