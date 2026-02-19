@@ -5,7 +5,8 @@ from typing import List, Literal, Optional, Union
 from pydantic import BaseModel, ConfigDict, Field
 
 # Visibility Enum
-Visibility = Literal['public', 'unlisted', 'private', 'deleted']
+Visibility = Literal["public", "unlisted", "private", "deleted"]
+
 
 class Expiry(str, Enum):
     MIN_10 = "10m"
@@ -15,16 +16,20 @@ class Expiry(str, Enum):
     WEEK_1 = "1w"
     WEEK_2 = "2w"
 
+
 class TPBaseModel(BaseModel):
     """Base model that configures camelCase (API) <-> snake_case (Python) mapping."""
+
     model_config = ConfigDict(
         populate_by_name=True,
         from_attributes=True,
-        extra='ignore' # Ignore extra fields from API to prevent crashes
+        extra="ignore",  # Ignore extra fields from API to prevent crashes
     )
+
 
 class Snippet(TPBaseModel):
     """Represents a Snippet fetched from the API."""
+
     id: str
     title: str
     content: str
@@ -55,8 +60,10 @@ class Snippet(TPBaseModel):
     def __repr__(self):
         return f"<Snippet id={self.id} title='{self.title}' visibility={self.visibility}>"
 
+
 class SnippetInput(TPBaseModel):
     """Used for creating or updating a snippet."""
+
     title: str
     content: str
     language: str = "plaintext"
@@ -66,10 +73,12 @@ class SnippetInput(TPBaseModel):
     # Format expires: "10m", "1h", "1d", "1w" or None
     expires: Optional[Union[Expiry, str]] = None
 
+
 class SearchResult(TPBaseModel):
     hits: List[Snippet]
     total: int
     took: Optional[int] = None
+
 
 class UserInfo(TPBaseModel):
     user_id: str = Field(alias="userId")

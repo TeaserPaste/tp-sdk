@@ -9,6 +9,7 @@ from .models import SearchResult, Snippet, SnippetInput, UserInfo, Visibility
 
 logger = logging.getLogger("tp-sdk")
 
+
 class TeaserPaste:
     """
     TeaserPaste Client - The "One Word" Edition.
@@ -17,21 +18,21 @@ class TeaserPaste:
 
     DEFAULT_BASE_URL = "https://paste-api.teaserverse.online"
 
-    def __init__(self, api_key: Optional[str] = None, timeout: int = 10, base_url: Optional[str] = None):
+    def __init__(
+        self, api_key: Optional[str] = None, timeout: int = 10, base_url: Optional[str] = None
+    ):
         self.api_key = api_key
         self.timeout = timeout
         self.base_url = base_url or os.getenv("TP_BASE_URL") or self.DEFAULT_BASE_URL
         self.headers = {
             "Content-Type": "application/json",
-            "User-Agent": "TeaserPaste-SDK/0.1.0 (Python)"
+            "User-Agent": "TeaserPaste-SDK/0.1.0 (Python)",
         }
         if self.api_key:
             self.headers["Authorization"] = f"Bearer {self.api_key}"
 
         self.client = httpx.Client(
-            base_url=self.base_url,
-            headers=self.headers,
-            timeout=self.timeout
+            base_url=self.base_url, headers=self.headers, timeout=self.timeout
         )
 
     def close(self):
@@ -68,26 +69,34 @@ class TeaserPaste:
     def get(self, id: str, pwd: Optional[str] = None) -> Snippet:
         """Get a snippet."""
         payload = {"snippetId": id}
-        if pwd: payload["password"] = pwd
+        if pwd:
+            payload["password"] = pwd
         return Snippet(**self._req("POST", "/getSnippet", json=payload))
 
     def paste(self, data: SnippetInput) -> Snippet:
         """Create (Paste) a new snippet."""
         return Snippet(**self._req("POST", "/createSnippet", json=data.model_dump(by_alias=True)))
 
-    def edit(self, id: str,
-             title: Optional[str] = None,
-             content: Optional[str] = None,
-             language: Optional[str] = None,
-             visibility: Optional[Visibility] = None,
-             tags: Optional[List[str]] = None,
-             password: Optional[str] = None,
-             expires: Optional[str] = None,
-             **kwargs) -> Snippet:
+    def edit(
+        self,
+        id: str,
+        title: Optional[str] = None,
+        content: Optional[str] = None,
+        language: Optional[str] = None,
+        visibility: Optional[Visibility] = None,
+        tags: Optional[List[str]] = None,
+        password: Optional[str] = None,
+        expires: Optional[str] = None,
+        **kwargs,
+    ) -> Snippet:
         """Update a snippet. Pass fields as arguments."""
-        updates = {k: v for k, v in locals().items() if v is not None and k not in ('self', 'id', 'kwargs')}
+        updates = {
+            k: v for k, v in locals().items() if v is not None and k not in ("self", "id", "kwargs")
+        }
         updates.update(kwargs)
-        return Snippet(**self._req("PATCH", "/updateSnippet", json={"snippetId": id, "updates": updates}))
+        return Snippet(
+            **self._req("PATCH", "/updateSnippet", json={"snippetId": id, "updates": updates})
+        )
 
     def kill(self, id: str) -> bool:
         """Soft delete a snippet."""
@@ -107,14 +116,20 @@ class TeaserPaste:
         """Copy (Fork) a snippet to your account."""
         return self._req("POST", "/copySnippet", json={"snippetId": id})
 
-    def ls(self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False) -> List[Snippet]:
+    def ls(
+        self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False
+    ) -> List[Snippet]:
         """List MY snippets (ls)."""
         payload = {"limit": limit}
-        if mode: payload["visibility"] = mode
-        if include_deleted: payload["includeDeleted"] = True
+        if mode:
+            payload["visibility"] = mode
+        if include_deleted:
+            payload["includeDeleted"] = True
         return [Snippet(**i) for i in self._req("POST", "/listSnippets", json=payload)]
 
-    def ls_iter(self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False) -> Iterator[Snippet]:
+    def ls_iter(
+        self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False
+    ) -> Iterator[Snippet]:
         """Iterator for listing snippets (single page only, pagination deprecated)."""
         snippets = self.ls(limit=limit, mode=mode, include_deleted=include_deleted)
         for snippet in snippets:
@@ -122,12 +137,16 @@ class TeaserPaste:
 
     def user(self, uid: str) -> List[Snippet]:
         """Get PUBLIC snippets of another USER."""
-        return [Snippet(**i) for i in self._req("POST", "/getUserPublicSnippets", json={"userId": uid})]
+        return [
+            Snippet(**i) for i in self._req("POST", "/getUserPublicSnippets", json={"userId": uid})
+        ]
 
     def find(self, q: str, size: int = 20) -> SearchResult:
         """Search (Find) snippets."""
         data = self._req("POST", "/searchSnippets", json={"term": q, "size": size})
-        return SearchResult(hits=[Snippet(**h) for h in data.get("hits", [])], total=data.get("total", 0))
+        return SearchResult(
+            hits=[Snippet(**h) for h in data.get("hits", [])], total=data.get("total", 0)
+        )
 
     def find_iter(self, q: str, size: int = 20) -> Iterator[Snippet]:
         """Iterator for finding snippets (single page only, pagination deprecated)."""
@@ -147,21 +166,21 @@ class AsyncTeaserPaste:
 
     DEFAULT_BASE_URL = "https://paste-api.teaserverse.online"
 
-    def __init__(self, api_key: Optional[str] = None, timeout: int = 10, base_url: Optional[str] = None):
+    def __init__(
+        self, api_key: Optional[str] = None, timeout: int = 10, base_url: Optional[str] = None
+    ):
         self.api_key = api_key
         self.timeout = timeout
         self.base_url = base_url or os.getenv("TP_BASE_URL") or self.DEFAULT_BASE_URL
         self.headers = {
             "Content-Type": "application/json",
-            "User-Agent": "TeaserPaste-SDK/0.1.0 (Python)"
+            "User-Agent": "TeaserPaste-SDK/0.1.0 (Python)",
         }
         if self.api_key:
             self.headers["Authorization"] = f"Bearer {self.api_key}"
 
         self.client = httpx.AsyncClient(
-            base_url=self.base_url,
-            headers=self.headers,
-            timeout=self.timeout
+            base_url=self.base_url, headers=self.headers, timeout=self.timeout
         )
 
     async def close(self):
@@ -194,26 +213,36 @@ class AsyncTeaserPaste:
     async def get(self, id: str, pwd: Optional[str] = None) -> Snippet:
         """Get a snippet."""
         payload = {"snippetId": id}
-        if pwd: payload["password"] = pwd
+        if pwd:
+            payload["password"] = pwd
         return Snippet(**await self._req("POST", "/getSnippet", json=payload))
 
     async def paste(self, data: SnippetInput) -> Snippet:
         """Create (Paste) a new snippet."""
-        return Snippet(**await self._req("POST", "/createSnippet", json=data.model_dump(by_alias=True)))
+        return Snippet(
+            **await self._req("POST", "/createSnippet", json=data.model_dump(by_alias=True))
+        )
 
-    async def edit(self, id: str,
-             title: Optional[str] = None,
-             content: Optional[str] = None,
-             language: Optional[str] = None,
-             visibility: Optional[Visibility] = None,
-             tags: Optional[List[str]] = None,
-             password: Optional[str] = None,
-             expires: Optional[str] = None,
-             **kwargs) -> Snippet:
+    async def edit(
+        self,
+        id: str,
+        title: Optional[str] = None,
+        content: Optional[str] = None,
+        language: Optional[str] = None,
+        visibility: Optional[Visibility] = None,
+        tags: Optional[List[str]] = None,
+        password: Optional[str] = None,
+        expires: Optional[str] = None,
+        **kwargs,
+    ) -> Snippet:
         """Update a snippet. Pass fields as arguments."""
-        updates = {k: v for k, v in locals().items() if v is not None and k not in ('self', 'id', 'kwargs')}
+        updates = {
+            k: v for k, v in locals().items() if v is not None and k not in ("self", "id", "kwargs")
+        }
         updates.update(kwargs)
-        return Snippet(**await self._req("PATCH", "/updateSnippet", json={"snippetId": id, "updates": updates}))
+        return Snippet(
+            **await self._req("PATCH", "/updateSnippet", json={"snippetId": id, "updates": updates})
+        )
 
     async def kill(self, id: str) -> bool:
         """Soft delete a snippet."""
@@ -233,14 +262,20 @@ class AsyncTeaserPaste:
         """Copy (Fork) a snippet to your account."""
         return await self._req("POST", "/copySnippet", json={"snippetId": id})
 
-    async def ls(self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False) -> List[Snippet]:
+    async def ls(
+        self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False
+    ) -> List[Snippet]:
         """List MY snippets (ls)."""
         payload = {"limit": limit}
-        if mode: payload["visibility"] = mode
-        if include_deleted: payload["includeDeleted"] = True
+        if mode:
+            payload["visibility"] = mode
+        if include_deleted:
+            payload["includeDeleted"] = True
         return [Snippet(**i) for i in await self._req("POST", "/listSnippets", json=payload)]
 
-    async def ls_iter(self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False) -> AsyncIterator[Snippet]:
+    async def ls_iter(
+        self, limit: int = 20, mode: Optional[Visibility] = None, include_deleted: bool = False
+    ) -> AsyncIterator[Snippet]:
         """Async iterator for listing snippets (single page only, pagination deprecated)."""
         snippets = await self.ls(limit=limit, mode=mode, include_deleted=include_deleted)
         for snippet in snippets:
@@ -248,12 +283,17 @@ class AsyncTeaserPaste:
 
     async def user(self, uid: str) -> List[Snippet]:
         """Get PUBLIC snippets of another USER."""
-        return [Snippet(**i) for i in await self._req("POST", "/getUserPublicSnippets", json={"userId": uid})]
+        return [
+            Snippet(**i)
+            for i in await self._req("POST", "/getUserPublicSnippets", json={"userId": uid})
+        ]
 
     async def find(self, q: str, size: int = 20) -> SearchResult:
         """Search (Find) snippets."""
         data = await self._req("POST", "/searchSnippets", json={"term": q, "size": size})
-        return SearchResult(hits=[Snippet(**h) for h in data.get("hits", [])], total=data.get("total", 0))
+        return SearchResult(
+            hits=[Snippet(**h) for h in data.get("hits", [])], total=data.get("total", 0)
+        )
 
     async def find_iter(self, q: str, size: int = 20) -> AsyncIterator[Snippet]:
         """Async iterator for finding snippets (single page only, pagination deprecated)."""
